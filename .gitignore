@@ -1,0 +1,44 @@
+# OS and logs
+.DS_Store
+*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Node / Vite
+node_modules/
+dist/
+.vite/
+
+# Java / Maven / Spring
+HELP.md
+target/
+**/.mvn/wrapper/maven-wrapper.properties
+**/.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# IDEs
+.idea/
+.vscode/
+*.iws
+*.iml
+*.ipr
+
+# NetBeans / Gradle-style generated output
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/

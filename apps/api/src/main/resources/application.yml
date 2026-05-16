@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: slate-api
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/slate}
+    username: ${DATABASE_USERNAME:slate}
+    password: ${DATABASE_PASSWORD:slate}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+slate:
+  web-origin: ${SLATE_WEB_ORIGIN:http://localhost:5173}
+  security:
+    dev-user-enabled: ${SLATE_DEV_USER_ENABLED:true}
