@@ -38,7 +38,7 @@ export function EditorPage() {
 
     return {
       elements: (scene?.elements ?? []) as unknown[],
-      appState: (scene?.appState ?? {}) as Record<string, unknown>,
+      appState: sanitizeAppState(scene?.appState ?? {}),
       files: (scene?.files ?? {}) as Record<string, unknown>
     };
   }, [activeBoard?.id]);
@@ -62,9 +62,9 @@ export function EditorPage() {
     (elements: readonly unknown[], appState: Record<string, unknown>, files: Record<string, unknown>) => {
       setDirty(true);
       debouncedSave({
-        elements: elements as JsonValue[],
-        appState: appState as Record<string, JsonValue>,
-        files: files as Record<string, JsonValue>
+        elements: toJsonValue(elements, []) as JsonValue[],
+        appState: sanitizeAppState(appState) as Record<string, JsonValue>,
+        files: toJsonValue(files, {}) as Record<string, JsonValue>
       });
     },
     [debouncedSave]
@@ -78,7 +78,10 @@ export function EditorPage() {
     void saveBoard({
       id: activeBoard.id,
       title: title.trim() || "Untitled board",
-      sceneJson: activeBoard.sceneJson
+      sceneJson: {
+        ...activeBoard.sceneJson,
+        appState: sanitizeAppState(activeBoard.sceneJson.appState ?? {}) as Record<string, JsonValue>
+      }
     });
   };
 
@@ -132,6 +135,35 @@ export function EditorPage() {
       </section>
     </main>
   );
+}
+
+function sanitizeAppState(appState: Record<string, unknown>) {
+  const { collaborators: _collaborators, ...rest } = appState;
+  return toJsonValue(rest, {}) as Record<string, unknown>;
+}
+
+function toJsonValue(value: unknown, fallback: JsonValue): JsonValue {
+  if (value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => toJsonValue(item, null));
+  }
+
+  if (typeof value === "object") {
+    if (value instanceof Map || value instanceof Set || value instanceof File) {
+      return fallback;
+    }
+
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, item]) => typeof item !== "undefined" && typeof item !== "function")
+        .map(([key, item]) => [key, toJsonValue(item, null)])
+    );
+  }
+
+  return fallback;
 }
 
 function SaveStatus({ status, dirty }: { status: string; dirty: boolean }) {
