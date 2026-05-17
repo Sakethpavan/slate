@@ -1,6 +1,8 @@
 services:
   postgres:
     image: postgres:16
+    container_name: slate-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_DB: slate
       POSTGRES_USER: slate
@@ -13,7 +15,22 @@ services:
       test: ["CMD-SHELL", "pg_isready -U slate -d slate"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 5 
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: slate-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    volumes:
+      - slate_pgadmin:/var/lib/pgadmin
 
 volumes:
   slate_postgres:
+  slate_pgadmin:
