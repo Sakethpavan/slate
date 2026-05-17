@@ -6,6 +6,7 @@ import { Header } from "../components/Header";
 import { useAuth } from "../auth/useAuth";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
 import { useBoardStore } from "../store/boardStore";
+import { useThemeStore } from "../store/themeStore";
 import type { JsonValue } from "../types/slate";
 
 type ScenePayload = {
@@ -18,6 +19,7 @@ export function EditorPage() {
   const { boardId } = useParams();
   const { user } = useAuth();
   const { activeBoard, loadBoard, saveBoard, status } = useBoardStore();
+  const { theme } = useThemeStore();
   const [title, setTitle] = useState("");
   const [dirty, setDirty] = useState(false);
   const activeBoardIdRef = useRef<string | null>(null);
@@ -156,13 +158,13 @@ export function EditorPage() {
   };
 
   return (
-    <main className="min-h-screen bg-paper text-ink">
+    <main className="min-h-screen bg-canvas text-primary">
       <Header
         user={user}
         rightSlot={
           <Link
             to="/"
-            className="grid h-9 w-9 place-items-center rounded border border-ink/15 hover:bg-ink hover:text-paper"
+            className="grid h-9 w-9 place-items-center rounded border border-soft hover:bg-primary hover:text-inverse"
             aria-label="Back to dashboard"
             title="Back to dashboard"
           >
@@ -171,9 +173,9 @@ export function EditorPage() {
         }
       />
 
-      <section className="flex h-16 items-center justify-between border-b border-ink/10 bg-white px-4">
+      <section className="flex h-16 items-center justify-between border-b border-soft bg-surface px-4">
         <label className="flex min-w-0 flex-1 items-center gap-2">
-          <Pencil size={17} className="shrink-0 text-ink/45" aria-hidden />
+          <Pencil size={17} className="shrink-0 text-muted" aria-hidden />
           <input
             value={title}
             onChange={(event) => setTitle(event.target.value)}
@@ -185,12 +187,13 @@ export function EditorPage() {
         <SaveStatus status={status} dirty={dirty} />
       </section>
 
-      <section className="excalidraw-wrapper bg-white">
+      <section className="excalidraw-wrapper bg-surface">
         {activeBoard ? (
           <Excalidraw
             key={activeBoard.id}
             initialData={initialData as never}
             onChange={handleSceneChange as never}
+            theme={theme}
             UIOptions={{
               canvasActions: {
                 loadScene: false
@@ -251,7 +254,7 @@ function toJsonValue(value: unknown, fallback: JsonValue): JsonValue {
 function SaveStatus({ status, dirty }: { status: string; dirty: boolean }) {
   if (status === "saving" || dirty) {
     return (
-      <span className="inline-flex h-9 items-center gap-2 rounded bg-sky px-3 text-sm font-medium text-ink">
+      <span className="inline-flex h-9 items-center gap-2 rounded bg-info px-3 text-sm font-medium text-primary">
         <Cloud size={16} aria-hidden />
         Autosaving
       </span>
@@ -260,7 +263,7 @@ function SaveStatus({ status, dirty }: { status: string; dirty: boolean }) {
 
   if (status === "saved") {
     return (
-      <span className="inline-flex h-9 items-center gap-2 rounded bg-moss px-3 text-sm font-medium text-paper">
+      <span className="inline-flex h-9 items-center gap-2 rounded bg-accent px-3 text-sm font-medium text-inverse">
         <Check size={16} aria-hidden />
         Saved
       </span>
@@ -268,7 +271,7 @@ function SaveStatus({ status, dirty }: { status: string; dirty: boolean }) {
   }
 
   return (
-    <span className="inline-flex h-9 items-center gap-2 rounded border border-ink/10 px-3 text-sm font-medium text-ink/60">
+    <span className="inline-flex h-9 items-center gap-2 rounded border border-soft px-3 text-sm font-medium text-muted">
       <Check size={16} aria-hidden />
       Ready
     </span>

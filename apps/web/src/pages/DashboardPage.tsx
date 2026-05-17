@@ -22,12 +22,12 @@ export function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-paper text-ink">
+    <main className="min-h-screen bg-canvas text-primary">
       <Header user={user} />
       <section className="mx-auto w-full max-w-6xl px-5 py-8">
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
-            <p className="text-sm font-medium uppercase text-moss">Recent boards</p>
+            <p className="text-sm font-medium uppercase text-accent">Recent boards</p>
             <h1 className="mt-2 text-3xl font-semibold">Your workspace</h1>
           </div>
 
@@ -35,12 +35,12 @@ export function DashboardPage() {
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="h-11 min-w-0 flex-1 rounded border border-ink/15 bg-white px-3 outline-none focus:border-moss sm:w-64"
+              className="h-11 min-w-0 flex-1 rounded border border-soft bg-surface px-3 text-primary outline-none focus:border-accent sm:w-64"
               aria-label="Board title"
             />
             <button
               type="submit"
-              className="inline-flex h-11 items-center gap-2 rounded bg-ink px-4 font-medium text-paper hover:bg-moss"
+              className="inline-flex h-11 items-center gap-2 rounded bg-primary px-4 font-medium text-inverse hover:bg-accent"
             >
               <FilePlus2 size={18} aria-hidden />
               Create
@@ -50,15 +50,15 @@ export function DashboardPage() {
 
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {boards.map((board) => (
-            <article key={board.id} className="rounded border border-ink/10 bg-white p-4 shadow-sm">
+            <article key={board.id} className="rounded border border-soft bg-surface p-4 shadow-sm">
               <Link to={`/boards/${board.id}`} className="block">
                 <h2 className="truncate text-lg font-semibold">{board.title}</h2>
-                <p className="mt-2 text-sm text-ink/60">Updated {formatDate(board.updatedAt)}</p>
+                <p className="mt-2 text-sm text-muted">Updated {formatDate(board.updatedAt)}</p>
               </Link>
               <button
                 type="button"
                 onClick={() => void deleteBoard(board.id)}
-                className="mt-5 grid h-9 w-9 place-items-center rounded border border-ink/10 text-ink/65 hover:border-clay hover:text-clay"
+                className="mt-5 grid h-9 w-9 place-items-center rounded border border-soft text-muted hover:border-warning hover:text-warning"
                 aria-label={`Delete ${board.title}`}
                 title="Delete board"
               >
@@ -69,9 +69,9 @@ export function DashboardPage() {
         </div>
 
         {boards.length === 0 && status !== "loading" ? (
-          <div className="mt-16 border-y border-ink/10 py-16 text-center">
+          <div className="mt-16 border-y border-soft py-16 text-center">
             <h2 className="text-2xl font-semibold">No boards yet</h2>
-            <p className="mt-3 text-ink/65">Create your first board and start sketching.</p>
+            <p className="mt-3 text-muted">Create your first board and start sketching.</p>
           </div>
         ) : null}
       </section>

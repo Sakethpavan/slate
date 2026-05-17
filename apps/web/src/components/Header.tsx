@@ -1,6 +1,7 @@
-import { LogOut, PanelsTopLeft } from "lucide-react";
+import { LogOut, Moon, PanelsTopLeft, Sun } from "lucide-react";
 import type React from "react";
 import { Link } from "react-router-dom";
+import { useThemeStore } from "../store/themeStore";
 import type { User } from "../types/slate";
 
 type HeaderProps = {
@@ -9,10 +10,12 @@ type HeaderProps = {
 };
 
 export function Header({ user, rightSlot }: HeaderProps) {
+  const { theme, toggleTheme } = useThemeStore();
+
   return (
-    <header className="flex h-16 items-center justify-between border-b border-ink/10 bg-paper px-5">
-      <Link to="/" className="flex items-center gap-3 text-ink">
-        <span className="grid h-9 w-9 place-items-center rounded bg-ink text-paper">
+    <header className="flex h-16 items-center justify-between border-b border-soft bg-canvas px-5 text-primary">
+      <Link to="/" className="flex items-center gap-3 text-primary">
+        <span className="grid h-9 w-9 place-items-center rounded bg-primary text-inverse">
           <PanelsTopLeft size={19} aria-hidden />
         </span>
         <span className="text-lg font-semibold">Slate</span>
@@ -20,12 +23,21 @@ export function Header({ user, rightSlot }: HeaderProps) {
 
       <div className="flex items-center gap-3">
         {rightSlot}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="grid h-9 w-9 place-items-center rounded border border-soft hover:bg-primary hover:text-inverse"
+          aria-label={theme === "dark" ? "Use light theme" : "Use dark theme"}
+          title={theme === "dark" ? "Use light theme" : "Use dark theme"}
+        >
+          {theme === "dark" ? <Sun size={17} aria-hidden /> : <Moon size={17} aria-hidden />}
+        </button>
         {user ? (
-          <div className="flex items-center gap-3 text-sm text-ink/75">
+          <div className="flex items-center gap-3 text-sm text-muted">
             {user.avatarUrl ? (
               <img src={user.avatarUrl} alt="" className="h-8 w-8 rounded-full" />
             ) : (
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-sky text-xs font-semibold text-ink">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-info text-xs font-semibold text-primary">
                 {user.name.slice(0, 1).toUpperCase()}
               </span>
             )}
@@ -34,7 +46,7 @@ export function Header({ user, rightSlot }: HeaderProps) {
               href="/logout"
               aria-label="Sign out"
               title="Sign out"
-              className="grid h-9 w-9 place-items-center rounded border border-ink/15 hover:bg-ink hover:text-paper"
+              className="grid h-9 w-9 place-items-center rounded border border-soft hover:bg-primary hover:text-inverse"
             >
               <LogOut size={17} aria-hidden />
             </a>

@@ -6,9 +6,15 @@ export default {
       colors: {
         ink: "#171717",
         paper: "#f7f5ef",
-        moss: "#52674f",
-        clay: "#b46d4f",
-        sky: "#d9e9ec"
+        primary: "var(--color-primary)",
+        muted: "var(--color-muted)",
+        soft: "var(--color-soft)",
+        canvas: "var(--color-canvas)",
+        surface: "var(--color-surface)",
+        inverse: "var(--color-inverse)",
+        accent: "var(--color-accent)",
+        warning: "var(--color-warning)",
+        info: "var(--color-info)"
       }
     }
   },
