@@ -1,6 +1,6 @@
 import { Excalidraw } from "@excalidraw/excalidraw";
 import { ArrowLeft, Check, Cloud, Loader2, Pencil } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Header } from "../components/Header";
 import { useAuth } from "../auth/useAuth";
@@ -20,6 +20,11 @@ export function EditorPage() {
   const { activeBoard, loadBoard, saveBoard, status } = useBoardStore();
   const [title, setTitle] = useState("");
   const [dirty, setDirty] = useState(false);
+  const activeBoardIdRef = useRef<string | null>(null);
+  const dirtyRef = useRef(false);
+  const lastSavedSceneRef = useRef("");
+  const latestSceneRef = useRef<ScenePayload | null>(null);
+  const titleRef = useRef("");
 
   useEffect(() => {
     if (boardId) {
@@ -30,8 +35,20 @@ export function EditorPage() {
   useEffect(() => {
     if (activeBoard) {
       setTitle(activeBoard.title);
+      titleRef.current = activeBoard.title;
+      activeBoardIdRef.current = activeBoard.id;
+      latestSceneRef.current = sanitizeScene(activeBoard.sceneJson);
+      lastSavedSceneRef.current = serializeScene(latestSceneRef.current);
     }
   }, [activeBoard?.id]);
+
+  useEffect(() => {
+    titleRef.current = title;
+  }, [title]);
+
+  useEffect(() => {
+    dirtyRef.current = dirty;
+  }, [dirty]);
 
   const initialData = useMemo(() => {
     const scene = activeBoard?.sceneJson;
@@ -43,29 +60,85 @@ export function EditorPage() {
     };
   }, [activeBoard?.id]);
 
-  const debouncedSave = useDebouncedCallback(
-    (scene: ScenePayload) => {
-      if (!activeBoard) {
+  const saveLatestScene = useCallback(
+    async (scene = latestSceneRef.current) => {
+      const boardId = activeBoardIdRef.current;
+      if (!boardId || !scene) {
         return;
       }
 
-      void saveBoard({
-        id: activeBoard.id,
-        title,
+      await saveBoard({
+        id: boardId,
+        title: titleRef.current.trim() || "Untitled board",
         sceneJson: scene
-      }).then(() => setDirty(false));
+      });
+      lastSavedSceneRef.current = serializeScene(scene);
+      setDirty(false);
+    },
+    [saveBoard]
+  );
+
+  const debouncedSave = useDebouncedCallback(
+    (scene: ScenePayload) => {
+      void saveLatestScene(scene);
     },
     3000
   );
 
+  useEffect(() => {
+    const flushWithKeepalive = () => {
+      const boardId = activeBoardIdRef.current;
+      const scene = latestSceneRef.current;
+
+      if (!dirtyRef.current || !boardId || !scene) {
+        return;
+      }
+
+      void fetch(`/api/boards/${boardId}`, {
+        method: "PUT",
+        credentials: "include",
+        keepalive: true,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          title: titleRef.current.trim() || "Untitled board",
+          sceneJson: scene
+        })
+      });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        flushWithKeepalive();
+      }
+    };
+
+    window.addEventListener("pagehide", flushWithKeepalive);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("pagehide", flushWithKeepalive);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
   const handleSceneChange = useCallback(
     (elements: readonly unknown[], appState: Record<string, unknown>, files: Record<string, unknown>) => {
-      setDirty(true);
-      debouncedSave({
+      const scene = {
         elements: toJsonValue(elements, []) as JsonValue[],
         appState: sanitizeAppState(appState) as Record<string, JsonValue>,
         files: toJsonValue(files, {}) as Record<string, JsonValue>
-      });
+      };
+      const serializedScene = serializeScene(scene);
+
+      if (serializedScene === lastSavedSceneRef.current) {
+        return;
+      }
+
+      latestSceneRef.current = scene;
+      setDirty(true);
+      debouncedSave(scene);
     },
     [debouncedSave]
   );
@@ -78,10 +151,7 @@ export function EditorPage() {
     void saveBoard({
       id: activeBoard.id,
       title: title.trim() || "Untitled board",
-      sceneJson: {
-        ...activeBoard.sceneJson,
-        appState: sanitizeAppState(activeBoard.sceneJson.appState ?? {}) as Record<string, JsonValue>
-      }
+      sceneJson: latestSceneRef.current ?? sanitizeScene(activeBoard.sceneJson)
     });
   };
 
@@ -135,6 +205,18 @@ export function EditorPage() {
       </section>
     </main>
   );
+}
+
+function sanitizeScene(scene: { elements?: unknown; appState?: Record<string, unknown>; files?: unknown }): ScenePayload {
+  return {
+    elements: toJsonValue(scene.elements ?? [], []) as JsonValue[],
+    appState: sanitizeAppState(scene.appState ?? {}) as Record<string, JsonValue>,
+    files: toJsonValue(scene.files ?? {}, {}) as Record<string, JsonValue>
+  };
+}
+
+function serializeScene(scene: ScenePayload) {
+  return JSON.stringify(scene);
 }
 
 function sanitizeAppState(appState: Record<string, unknown>) {
