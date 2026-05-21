@@ -11,10 +11,12 @@ export default defineConfig(({ mode }) => {
       "process.env.NODE_ENV": JSON.stringify(nodeEnv)
     },
     optimizeDeps: {
-      esbuildOptions: {
-        define: {
-          "process.env.IS_PREACT": JSON.stringify("false"),
-          "process.env.NODE_ENV": JSON.stringify("development")
+      rolldownOptions: {
+        transform: {
+          define: {
+            "process.env.IS_PREACT": JSON.stringify("false"),
+            "process.env.NODE_ENV": JSON.stringify("development")
+          }
         }
       }
     },
@@ -22,15 +24,15 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         "/api": {
-          target: "http://localhost:8080",
+          target: "http://192.168.29.221:8080",
           changeOrigin: true
         },
         "/oauth2": {
-          target: "http://localhost:8080",
-          changeOrigin: true
+          target: "http://192.168.29.221:8080",
+          changeOrigin: false
         },
         "/logout": {
-          target: "http://localhost:8080",
+          target: "http://192.168.29.221:8080",
           changeOrigin: true
         }
       }
