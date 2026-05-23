@@ -10,7 +10,9 @@
 	"assets": {
 		"directory": "./dist",
 		"binding": "ASSETS",
-		"not_found_handling": "single-page-application"
+	},
+	"vars": {
+		"BACKEND_ORIGIN": "REPLACE_ME_IN_DASHBOARD_AND_DEV_VARS"
 	},
 	"observability": {
 		"enabled": true

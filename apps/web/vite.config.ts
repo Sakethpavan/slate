@@ -24,15 +24,15 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         "/api": {
-          target: "http://192.168.29.221:8080",
+          target: "http://localhost:8080",
           changeOrigin: true
         },
         "/oauth2": {
-          target: "http://192.168.29.221:8080",
-          changeOrigin: false
+          target: "http://localhost:8080",
+          changeOrigin: true
         },
         "/logout": {
-          target: "http://192.168.29.221:8080",
+          target: "http://localhost:8080",
           changeOrigin: true
         }
       }
