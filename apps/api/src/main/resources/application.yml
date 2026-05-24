@@ -6,6 +6,11 @@ server:
       cookie:
         same-site: none
         secure: true
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security.oauth2: DEBUG
 spring:
   application:
     name: slate-api
