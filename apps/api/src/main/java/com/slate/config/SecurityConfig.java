@@ -1,5 +1,6 @@
 package com.slate.config;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -13,9 +14,18 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 
 @Configuration
 public class SecurityConfig {
@@ -25,8 +35,15 @@ public class SecurityConfig {
         HttpSecurity http,
         ObjectProvider<ClientRegistrationRepository> clientRegistrations,
         @Value("${slate.web-origin}") String webOrigin,
-        @Value("${slate.security.dev-user-enabled:false}") boolean devUserEnabled
+        @Value("${slate.security.dev-user-enabled:false}") boolean devUserEnabled,
+        @Value("${server.servlet.session.cookie.domain:}") String cookieDomain
     ) throws Exception {
+        
+        // Only apply the header rewrite filter if a specific cookie domain is provided in yaml
+        if (cookieDomain != null && !cookieDomain.isBlank()) {
+            http.addFilterBefore(new ProxyCookieFilter(cookieDomain), HeaderWriterFilter.class);
+        }
+
         http
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
@@ -61,15 +78,8 @@ public class SecurityConfig {
         DefaultOAuth2AuthorizationRequestResolver resolver = new DefaultOAuth2AuthorizationRequestResolver(
                 clientRegistrationRepository, "/oauth2/authorization");
         
-        // This customizer intercepts the outbound request right before redirecting to Google
-        // and stamps SameSite=None and Secure on the OAuth state tracking cookie attributes
         resolver.setAuthorizationRequestCustomizer(customizer -> customizer
-                .attributes(attrs -> {
-                    // Ensures internal tracking complies with proxy cross-site requirements
-                    customizer.additionalParameters(params -> {
-                        // Spring uses this consumer block under the hood to write attributes safely
-                    });
-                })
+                .attributes(attrs -> {})
         );
         return resolver;
     }
@@ -85,5 +95,34 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    // Filter now accepts a dynamic domain configuration string at instance execution time
+    private static class ProxyCookieFilter implements Filter {
+        private final String domain;
+
+        public ProxyCookieFilter(String domain) {
+            this.domain = domain;
+        }
+
+        @Override
+        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+                throws IOException, ServletException {
+            
+            HttpServletResponse httpResponse = (HttpServletResponse) response;
+            
+            chain.doFilter(request, new HttpServletResponseWrapper(httpResponse) {
+                @Override
+                public void addHeader(String name, String value) {
+                    if ("Set-Cookie".equalsIgnoreCase(name) && value.contains("JSESSIONID")) {
+                        if (!value.contains("Domain=")) {
+                            // Injecting the dynamic property into the raw cookie header string safely
+                            value += String.format("; Domain=%s; Secure; SameSite=None; Path=/", domain);
+                        }
+                    }
+                    super.addHeader(name, value);
+                }
+            });
+        }
     }
 }

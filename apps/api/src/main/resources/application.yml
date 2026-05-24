@@ -9,6 +9,10 @@ server:
         same-site: "none"
         # Forces the cookie to only be transmitted over secure HTTPS connections
         secure: true
+        server:
+        # Forces the cookie to match the public-facing Hugging Face domain
+        domain: "astro-v1-slate.hf.space"
+        path: "/"
 logging:
   level:
     org.springframework.security: DEBUG
