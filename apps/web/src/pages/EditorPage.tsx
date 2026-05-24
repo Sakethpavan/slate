@@ -1,9 +1,10 @@
 import { Excalidraw } from "@excalidraw/excalidraw";
 import { ArrowLeft, Check, Cloud, Loader2, Pencil } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ComponentProps, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Header } from "../components/Header";
 import { useAuth } from "../auth/useAuth";
+import { apiUrl } from "../config";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
 import { useBoardStore } from "../store/boardStore";
 import { useThemeStore } from "../store/themeStore";
@@ -14,6 +15,8 @@ type ScenePayload = {
   appState: Record<string, JsonValue>;
   files: Record<string, JsonValue>;
 };
+
+type ExcalidrawProps = ComponentProps<typeof Excalidraw>;
 
 export function EditorPage() {
   const { boardId } = useParams();
@@ -27,6 +30,9 @@ export function EditorPage() {
   const lastSavedSceneRef = useRef("");
   const latestSceneRef = useRef<ScenePayload | null>(null);
   const titleRef = useRef("");
+  const activeBoardId = activeBoard?.id;
+  const activeBoardTitle = activeBoard?.title;
+  const activeBoardSceneJson = activeBoard?.sceneJson;
 
   useEffect(() => {
     if (boardId) {
@@ -35,14 +41,14 @@ export function EditorPage() {
   }, [boardId, loadBoard]);
 
   useEffect(() => {
-    if (activeBoard) {
-      setTitle(activeBoard.title);
-      titleRef.current = activeBoard.title;
-      activeBoardIdRef.current = activeBoard.id;
-      latestSceneRef.current = sanitizeScene(activeBoard.sceneJson);
+    if (activeBoardId && activeBoardTitle && activeBoardSceneJson) {
+      setTitle(activeBoardTitle);
+      titleRef.current = activeBoardTitle;
+      activeBoardIdRef.current = activeBoardId;
+      latestSceneRef.current = sanitizeScene(activeBoardSceneJson);
       lastSavedSceneRef.current = serializeScene(latestSceneRef.current);
     }
-  }, [activeBoard?.id]);
+  }, [activeBoardId, activeBoardSceneJson, activeBoardTitle]);
 
   useEffect(() => {
     titleRef.current = title;
@@ -52,15 +58,15 @@ export function EditorPage() {
     dirtyRef.current = dirty;
   }, [dirty]);
 
-  const initialData = useMemo(() => {
-    const scene = activeBoard?.sceneJson;
+  const initialData = useMemo<NonNullable<ExcalidrawProps["initialData"]>>(() => {
+    const scene = activeBoardSceneJson;
 
     return {
       elements: (scene?.elements ?? []) as unknown[],
       appState: sanitizeAppState(scene?.appState ?? {}),
       files: (scene?.files ?? {}) as Record<string, unknown>
-    };
-  }, [activeBoard?.id]);
+    } as NonNullable<ExcalidrawProps["initialData"]>;
+  }, [activeBoardSceneJson]);
 
   const saveLatestScene = useCallback(
     async (scene = latestSceneRef.current) => {
@@ -96,7 +102,7 @@ export function EditorPage() {
         return;
       }
 
-      void fetch(`/api/boards/${boardId}`, {
+      void fetch(apiUrl(`/api/boards/${boardId}`), {
         method: "PUT",
         credentials: "include",
         keepalive: true,
@@ -125,11 +131,11 @@ export function EditorPage() {
     };
   }, []);
 
-  const handleSceneChange = useCallback(
-    (elements: readonly unknown[], appState: Record<string, unknown>, files: Record<string, unknown>) => {
+  const handleSceneChange = useCallback<NonNullable<ExcalidrawProps["onChange"]>>(
+    (elements, appState, files) => {
       const scene = {
         elements: toJsonValue(elements, []) as JsonValue[],
-        appState: sanitizeAppState(appState) as Record<string, JsonValue>,
+        appState: sanitizeAppState(appState as unknown as Record<string, unknown>) as Record<string, JsonValue>,
         files: toJsonValue(files, {}) as Record<string, JsonValue>
       };
       const serializedScene = serializeScene(scene);
@@ -191,8 +197,8 @@ export function EditorPage() {
         {activeBoard ? (
           <Excalidraw
             key={activeBoard.id}
-            initialData={initialData as never}
-            onChange={handleSceneChange as never}
+            initialData={initialData}
+            onChange={handleSceneChange}
             theme={theme}
             UIOptions={{
               canvasActions: {
@@ -223,11 +229,12 @@ function serializeScene(scene: ScenePayload) {
 }
 
 function sanitizeAppState(appState: Record<string, unknown>) {
-  const { collaborators: _collaborators, ...rest } = appState;
+  const rest = { ...appState };
+  delete rest.collaborators;
   return toJsonValue(rest, {}) as Record<string, unknown>;
 }
 
-function toJsonValue(value: unknown, fallback: JsonValue): JsonValue | any {
+function toJsonValue(value: unknown, fallback: JsonValue): JsonValue {
   if (value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
     return value;
   }
@@ -245,7 +252,7 @@ function toJsonValue(value: unknown, fallback: JsonValue): JsonValue | any {
       Object.entries(value as Record<string, unknown>)
         .filter(([, item]) => typeof item !== "undefined" && typeof item !== "function")
         .map(([key, item]) => [key, toJsonValue(item, null)])
-    );
+    ) as Record<string, JsonValue>;
   }
 
   return fallback;

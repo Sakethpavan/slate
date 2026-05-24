@@ -42,7 +42,7 @@ importers:
         specifier: ^18.3.1
         version: 18.3.7(@types/react@18.3.29)
       '@vitejs/plugin-react':
-        specifier: ^6.0.1
+        specifier: ^6.0.2
         version: 6.0.2(vite@8.0.14(@types/node@22.19.19)(esbuild@0.27.3)(jiti@1.21.7))
       autoprefixer:
         specifier: ^10.4.20
@@ -72,7 +72,7 @@ importers:
         specifier: ^8.18.2
         version: 8.59.4(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3)
       vite:
-        specifier: ^8.0.12
+        specifier: ^8.0.14
         version: 8.0.14(@types/node@22.19.19)(esbuild@0.27.3)(jiti@1.21.7)
       wrangler:
         specifier: ^4.93.1

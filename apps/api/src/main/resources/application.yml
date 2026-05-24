@@ -9,15 +9,12 @@ server:
         same-site: "none"
         # Forces the cookie to only be transmitted over secure HTTPS connections
         secure: true
-        server:
-        # Forces the cookie to match the public-facing Hugging Face domain
-        domain: "astro-v1-slate.hf.space"
         path: "/"
 logging:
   level:
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.security.oauth2: DEBUG
+    org.springframework.security: ${SLATE_SECURITY_LOG_LEVEL:INFO}
+    org.springframework.web: ${SLATE_WEB_LOG_LEVEL:INFO}
+    org.springframework.security.oauth2: ${SLATE_OAUTH_LOG_LEVEL:INFO}
 spring:
   application:
     name: slate-api

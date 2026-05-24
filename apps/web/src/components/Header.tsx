@@ -1,6 +1,7 @@
 import { LogOut, Moon, PanelsTopLeft, Sun } from "lucide-react";
 import type React from "react";
 import { Link } from "react-router-dom";
+import { apiUrl } from "../config";
 import { useThemeStore } from "../store/themeStore";
 import type { User } from "../types/slate";
 
@@ -43,7 +44,7 @@ export function Header({ user, rightSlot }: HeaderProps) {
             )}
             <span className="hidden max-w-40 truncate sm:inline">{user.name}</span>
             <a
-              href="/logout"
+              href={apiUrl("/logout")}
               aria-label="Sign out"
               title="Sign out"
               className="grid h-9 w-9 place-items-center rounded border border-soft hover:bg-primary hover:text-inverse"

@@ -1,11 +1,18 @@
-node_modules
-dist
-build
 .git
-.github
+.gitignore
+.idea
 .vscode
 
-apps/web/node_modules
-apps/web/dist
-
+node_modules
+**/node_modules
+dist
+**/dist
+target
 **/target
+.wrangler
+**/.wrangler
+
+.env
+.env.*
+.dev.vars
+*.log

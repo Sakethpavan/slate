@@ -1,11 +1,12 @@
 import type { Board, BoardSummary, User } from "../types/slate";
+import { apiUrl } from "../config";
 
 const jsonHeaders = {
   "Content-Type": "application/json"
 };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     credentials: "include",
     ...init,
     headers: {

@@ -1,4 +1,5 @@
 import { PanelsTopLeft } from "lucide-react";
+import { apiUrl } from "../config";
 
 export function LoginPage() {
   return (
@@ -17,14 +18,14 @@ export function LoginPage() {
             A focused Excalidraw workspace for boards that autosave to your account and reopen exactly where you left them.
           </p>
           <a
-            href="/oauth2/authorization/google"
+            href={apiUrl("/oauth2/authorization/google")}
             className="mt-9 inline-flex h-12 items-center justify-center rounded bg-primary px-5 font-medium text-inverse hover:bg-accent"
           >
             Continue with Google
           </a>
         </div>
 
-        <p className="text-sm text-muted">Local development uses a built-in dev user until Google OAuth credentials are configured.</p>
+        <p className="text-sm text-muted">Secure sign-in powered by Google OAuth.</p>
       </section>
 
       <section className="hidden min-h-screen bg-info p-8 lg:block">
