@@ -234,7 +234,7 @@ function sanitizeAppState(appState: Record<string, unknown>) {
   return toJsonValue(rest, {}) as Record<string, unknown>;
 }
 
-function toJsonValue(value: unknown, fallback: JsonValue): JsonValue {
+function toJsonValue(value: unknown, fallback: JsonValue): JsonValue | any {
   if (value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
     return value;
   }
