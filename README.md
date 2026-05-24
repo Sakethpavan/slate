@@ -1,3 +1,13 @@
+---
+title: Slate API
+emoji: 🚀
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Slate
 
 Slate is a whiteboard MVP: sign in, create boards, draw with Excalidraw, autosave, and reopen boards later.
