@@ -1,6 +1,14 @@
 server:
   port: ${PORT:8080}
-
+  # Instructs Spring to look at X-Forwarded-* headers from the Hugging Face proxy
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        # Crucial for the browser to return the cookie after the google.com -> hf.space redirect
+        same-site: "none"
+        # Forces the cookie to only be transmitted over secure HTTPS connections
+        secure: true
 logging:
   level:
     org.springframework.security: DEBUG
