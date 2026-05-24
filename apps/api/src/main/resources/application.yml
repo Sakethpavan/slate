@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
@@ -19,4 +19,4 @@ spring:
 slate:
   web-origin: ${SLATE_WEB_ORIGIN:http://localhost:5173}
   security:
-    dev-user-enabled: ${SLATE_DEV_USER_ENABLED:true}
+    dev-user-enabled: ${SLATE_DEV_USER_ENABLED:false}

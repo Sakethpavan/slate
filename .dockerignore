@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+.git
+.github
+.vscode
+
+apps/web/node_modules
+apps/web/dist
+
+**/target
